@@ -1,92 +1,116 @@
 # CornerGrocer — Grocery Tracking Program
 
-Summary
-- Small C++ utility to track grocery item frequencies and display reports (frequency list and histogram).
-- Counts are case-insensitive and stored in a map<string,size_t>.
-- Intended to be built with Visual Studio on Windows (solution and vcxproj included).
+Version: project snapshot (Oct 15, 2025)
 
-Quick features
-- Load items from a whitespace-separated text file and increment counts.
-- Persist a simple backup file with "item count" lines.
-- Print a formatted frequency list and an ASCII histogram.
-- Example data file in the repo: `frequency.dat`
+## Overview
+CornerGrocer is a small C++ object‑oriented program to count grocery item frequencies from a text file, 
+create a simple backup file, and provide interactive queries, a frequency listing, and an ASCII histogram. 
+The codebase is intentionally simple and designed to be built with Visual Studio on Windows.
 
-Repository layout
+Key points
+- Case‑insensitive counting (items normalized to lowercase).
+- Object-oriented design: core frequency logic and higher-level program management are separated into classes.
+- Input tokens are whitespace-delimited (single-word items). A sample data file `frequency.dat` is included.
+
+## Project layout
 - CornerGrocer_Project.sln — Visual Studio solution
-- CornerGrocer_Project.vcxproj* — project files
-- GroceryTracker.h / GroceryTracker.cpp — core tracker implementation
-  - Normalizes items to lowercase.
-  - Uses `operator>>` tokenization (splits on whitespace).
-  - `printFrequencies()` and `printHistogram()` print human-readable reports.
-- main.cpp — program entry (builds and uses GroceryTracker; run to exercise functionality)
-- frequency.dat — sample input
-- .gitignore — ignores .vs, build artifacts, etc.
+- CornerGrocer_Project.vcxproj* — project files and filters
+- src/project files:
+  - GroceryTracker.h / GroceryTracker.cpp — low-level frequency map management (normalization, load/save, printing utilities)
+  - GroceryManager.h / GroceryManager.cpp — higher-level manager that coordinates loading input, writing backup, and exposing methods used by main (menu operations)
+  - main.cpp — interactive menu (text UI) that uses GroceryManager
+  - frequency.dat — example input data
+- .gitignore — ignores .vs, build outputs, and other IDE artifacts
 
-Build (Windows / Visual Studio)
-1. Open `CornerGrocer_Project.sln` in Visual Studio 2019/2022.
-2. Select configuration (Debug or Release) and target (x64/x86).
-3. Build the solution (Build → Build Solution).
-4. The executable will be in the project's output folder, e.g.:
+## Design/architecture
+- GroceryTracker (core)
+  - Responsible for counting item frequencies using std::map<std::string, size_t>.
+  - Normalizes item tokens to lowercase and trims whitespace.
+  - Provides loading from a file, writing a simple backup file (one "item count" per line), and print helpers (frequency list and histogram).
+- GroceryManager (manager)
+  - Wraps GroceryTracker; responsible for initializing from the project input file, ensuring a backup (`frequency.dat`) is written, and exposing methods used by the interactive UI:
+    - getFrequencyForItem(const std::string& item)
+    - printFrequencyList()
+    - printHistogram()
+  - Keeps high-level program flow separate from the low-level counting logic.
+- main.cpp
+  - Provides a console menu:
+    1) Get the frequency of a specific item
+    2) Print frequency list for all items
+    3) Print a histogram for all items
+    4) Exit
+  - Uses explicit types in function signatures and avoids implicit "auto" for public interfaces for clarity and portability.
+
+## Public API (what the executable offers)
+- Interactive menu (run the built exe and follow prompts).
+- Programmatic API (class methods — see headers for exact signatures):
+  - GroceryManager::GroceryManager(const std::string& inputFile, const std::string& backupFile)
+  - int GroceryManager::getFrequencyForItem(const std::string& item) const
+  - void GroceryManager::printFrequencyList() const
+  - void GroceryManager::printHistogram() const
+  - GroceryTracker::loadFromFile(const std::string& filename)
+  - GroceryTracker::writeBackup(const std::string& filename) const
+  - GroceryTracker::getFrequency(const std::string& item) const
+
+(Refer to the header files for precise, up-to-date signatures.)
+
+## Input format and behavior
+- The program reads a text file of whitespace-separated tokens. Each whitespace-delimited token is treated as one item.
+- Items are normalized to lowercase before counting, so queries are case-insensitive.
+- Multi-word items (containing spaces) are currently not supported because input uses token-based reading.
+- If you need multi-word items, change loading to line-based parsing or CSV.
+
+## Build (Windows / Visual Studio)
+1. Open `CornerGrocer_Project.sln` in Visual Studio (2019/2022).
+2. Choose configuration (Debug/Release) and platform (x64/x86).
+3. Build: Build → Build Solution.
+4. The executable will be produced under a platform/config-specific output folder, e.g.:
    - `.\x64\Debug\CornerGrocer_Project.exe`
-   - or `.\x64\Release\CornerGrocer_Project.exe`
 
-Build (CLI)
-- Using MSBuild:
-  - msbuild CornerGrocer_Project.sln /p:Configuration=Release /p:Platform=x64
-- After building, run the produced exe as below.
+CLI build:
+- msbuild CornerGrocer_Project.sln /p:Configuration=Release /p:Platform=x64
 
-Run / Usage
-- Basic idea (adjust path to built exe and input file):
-  - PowerShell:
-    - `.\x64\Debug\CornerGrocer_Project.exe frequency.dat`
-  - If the program expects interactive commands, run the exe without arguments and follow prompts.
-- Output:
-  - Frequency list: item names (left-aligned) with counts.
-  - Histogram: each item followed by `*` repeated count times.
+## Run / Usage examples
+- From PowerShell (adjust path to the built exe):
+  - `.\x64\Debug\CornerGrocer_Project.exe`
+- The program will load `CS210_Project_Three_Input_File.txt` (project default) and write/overwrite `frequency.dat` as a backup.
+- Follow the on-screen menu to query a single item (single-word), print a full frequency list, or show the histogram.
 
-Design notes/implementation details
-- Data structure: std::map<std::string, size_t> (ordered by item name).
-- Normalization: items trimmed and lowercased before counting (`toLowerCopy()`).
-- Input reading: current code uses `operator>>` which treats whitespace as a separator — multi-word items (e.g., "green apple") will be split into tokens.
-- Histogram printing: prints one `*` per count. Very large counts will produce long lines.
-- Files:
-  - `loadFromFile(filename)` — clears existing map and loads tokens from file.
-  - `writeBackup(filename)` — writes lines "item count".
-  - `getFrequency(item)` — returns the frequency (case-insensitive lookup).
+Example: Query a single item
+- Choose menu option 1 and enter a single-word item like: apple
+- Output: apple: 5
 
-Known issues/suggestions
-- Multi-word items are not preserved (tokenization by whitespace). If you need multi-word item support, change input to read lines and parse differently (e.g., CSV or quoted strings).
-- Very large counts will make the histogram hard to read. Consider scaling or buckets if counts can be large.
-- If performance on large inputs matters, consider unordered_map for O(1) average lookup.
-- Non-ASCII characters: current lowercasing uses tolower on unsigned char, which is fine for ASCII, but not for full Unicode case folding.
-- Ensure `.vs/` is in `.gitignore` (already present); if `.vs` is tracked, run `git rm -r --cached .vs` then commit.
+Example: Print histogram
+- Choose menu option 3
+- Output shows each item left-aligned with '*' repeated by its count.
 
-How to contribute
-- Create an issue describing the change.
-- Fork and submit a PR with a clear description and tests (if applicable).
-- Follow the existing code style and add comments for non-obvious logic.
+## Notes, assumptions, and known limitations
+- Tokenization: uses operator>> (whitespace delimited). Multi-word product names are split into multiple tokens.
+- Unicode: current normalization uses std::tolower on unsigned char — sufficient for ASCII but not full Unicode case folding.
+- Large counts: histogram prints one star per count; huge counts will produce long lines. Could you consider scaling if needed?
+- Thread-safety: current implementation is single-threaded.
+- Explicit signatures: public interfaces use explicit types (no auto in public method signatures) and main uses the conventional int main() signature.
 
-Development TODOs (optional)
-- Support multi-word items (line-based parsing, CSV).
-- Add command-line flags:
-  - specify input file
-  - choose between frequency list and histogram
-  - scale histogram output
-- Add unit tests for GroceryTracker methods.
-- Add an option to persist/restore map using JSON or binary format.
+## Testing & further development suggestions
+- Add unit tests for GroceryTracker (loadFromFile, getFrequency, writeBackup) and GroceryManager (integration behavior).
+- Improve parsing to support quoted/multi-word items or CSV input.
+- Add command-line flags: input file path, backup path, show-only-frequency, show-only-histogram, or scale option for histograms.
+- Consider switching to unordered_map for performance on large inputs (if ordering by name is not required).
 
-Sample commands
-- Create .gitignore, remove tracked .vs and commit (PowerShell):
+## Git/repository tips
+- Ensure `.vs/` is listed in `.gitignore`. If the `.vs` folder was previously committed:
   - git rm -r --cached .vs
-  - git add.
-  - git commit -m "Remove .vs and ignore IDE artifacts"
-- Build and run:
-  - Open solution in Visual Studio → Build → Run
-  - or CLI: `msbuild CornerGrocer_Project.sln /p:Configuration=Debug /p:Platform=x64`
+  - git commit -m "Stop tracking .vs"
+  - git push
+- If the remote contains unknown commits, integrate them before pushing:
+  - git fetch origin
+  - git pull --rebase origin main
+  - git push origin main
 
-License
-- This repository does not include a license file by default. Add a license (e.g., MIT) if you intend this to be open source.
+## License
+- No license file included by default. Add an appropriate license (MIT, Apache 2.0, etc.) if you intend to publish this repository publicly.
 - Owner AltUser44
 
-Contact/support
-- For specific changes, request small, focused updates (example: "add multi-word item support" or "add CLI flags") and a code snippet or test you
+## Contact/contribution
+- For code changes: open a PR with a brief description, tests (if applicable), and build instructions.
+- For small focused changes (e.g., support multi-word items), request a patch and indicate whether you prefer line-based parsing or CSV.
