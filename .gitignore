@@ -1,0 +1,17 @@
+# Visual Studio / VS caches
+.vs/
+# Visual Studio build outputs
+bin/
+obj/
+# User and workspace files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+# CMake / build files
+CMakeFiles/
+CMakeCache.txt
+build/
+# OS files
+Thumbs.db
+Desktop.ini
