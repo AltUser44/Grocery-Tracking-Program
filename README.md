@@ -1,6 +1,5 @@
 # CornerGrocer — Grocery Tracking Program
 
-Version: project snapshot (Oct 15, 2025)
 
 ## Overview
 CornerGrocer is a small C++ object‑oriented program to count grocery item frequencies from a text file, 
