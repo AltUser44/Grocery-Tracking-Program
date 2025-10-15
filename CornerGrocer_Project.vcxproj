@@ -123,16 +123,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="CS210_Project_Three_Input_File.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="GroceryItem.h" />
-    <ClInclude Include="GroceryManager.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="GroceryItem.cpp" />
-    <ClCompile Include="GroceryManager.cpp" />
+    <ClCompile Include="GroceryTracker.cpp" />
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GroceryTracker.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CS210_Project_Three_Input_File.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

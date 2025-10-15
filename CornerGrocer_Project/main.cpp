@@ -1,7 +1,7 @@
 /*
  * Corner Grocer - Project Three
  * Author: Jaeyy Nkese
- * Date: October 14th, 2025
+ * Date: October 15th, 2025
  *
  * Main program: reads the input file, creates frequency.dat backup,
  * and presents a menu for frequency queries, listing, histogram, and exit.
@@ -9,74 +9,79 @@
 
 #include <iostream>
 #include <string>
-#include "GroceryTracker.h"
 #include <limits>
+#include "GroceryManager.h"
 
-using namespace std;
+
+//Display the menu options and display program title.
+int getMenuChoice() {
+    int choice = 0;
+    while (true) {
+        std::cout << "**************************************************\n";
+        std::cout << "*              CORNER GROCER PROJECT             *\n";
+        std::cout << "*           Grocery Tracking Program             *\n";
+        std::cout << "**************************************************\n";
+        std::cout << "\nMenu:\n";
+        std::cout << "1 - Get frequency of a specific item\n";
+        std::cout << "2 - Print frequency list for all items\n";
+        std::cout << "3 - Print histogram for all items\n";
+        std::cout << "4 - Exit\n";
+        std::cout << "Enter choice (1-4): ";
+        if (std::cin >> choice) {
+            if (choice >= 1 && choice <= 4) {
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                return choice;
+            }
+            else {
+                std::cout << "Invalid choice. Enter 1-4.\n";
+            }
+        }
+        else {
+            std::cout << "Invalid input. Please enter a number 1-4.\n";
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+}
+
+std::string getItemQuery() {
+    std::string item;
+    while (true) {
+        std::cout << "Enter item name to search (case-insensitive single word): ";
+        if (std::cin >> item) {
+            // check validation: word only (no spaces) and no empty inputs.
+            if (!item.empty()) {
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                return item;
+            }
+        }
+        std::cout << "Invalid input. Try again.\n";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
+}
 
 int main() {
-    const string inputFile = "CS210_Project_Three_Input_File.txt";
-    const string backupFile = "frequency.dat";
-
-    cout << "Corner Grocer - Grocery Tracking Program\n";
-
-    GroceryTracker tracker;
-    if (!tracker.loadFromFile(inputFile)) {
-        cerr << "Error: Failed to open input file '" << inputFile << "'. Make sure the file exists in the program folder.\n";
-        return 1;
-    }
-
-    // create backup file at program start (requirement)
-    if (!tracker.writeBackup(backupFile)) {
-        cerr << "Warning: Could not write backup file '" << backupFile << "'.\n";
-    }
+    GroceryManager manager("CS210_Project_Three_Input_File.txt", "frequency.dat");
 
     bool running = true;
     while (running) {
-        cout << "\nMenu:\n";
-        cout << "1 - Get frequency of a specific item\n";
-        cout << "2 - Print frequency list for all items\n";
-        cout << "3 - Print histogram for all items\n";
-        cout << "4 - Exit\n";
-        cout << "Enter choice (1-4): ";
-
-        int choice;
-        if (!(cin >> choice)) {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Invalid input. Please enter a number 1-4.\n";
-            continue;
+        int choice = getMenuChoice();
+        if (choice == 1) {
+            std::string query = getItemQuery();
+            int freq = manager.getFrequencyForItem(query);
+            // Preserve user case by printing query as typed.
+            std::cout << query << " : " << freq << "\n";
         }
-
-        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // consume rest of line
-
-        switch (choice) {
-        case 1: {
-            cout << "Enter item name to search (case-insensitive single word): ";
-            string item;
-            if (!(cin >> item)) {
-                cin.clear();
-                cin.ignore(numeric_limits<streamsize>::max(), '\n');
-                cout << "Invalid input.\n";
-                break;
-            }
-            size_t freq = tracker.getFrequency(item);
-            cout << item << " : " << freq << '\n';
-            break;
+        else if (choice == 2) {
+            manager.printFrequencyList();
         }
-        case 2:
-            tracker.printFrequencies();
-            break;
-        case 3:
-            tracker.printHistogram();
-            break;
-        case 4:
-            cout << "Exiting program. Goodbye.\n";
+        else if (choice == 3) {
+            manager.printHistogram();
+        }
+        else if (choice == 4) {
+            std::cout << "Exiting program. Goodbye.\n";
             running = false;
-            break;
-        default:
-            cout << "Please enter a valid option (1-4).\n";
-            break;
         }
     }
 
